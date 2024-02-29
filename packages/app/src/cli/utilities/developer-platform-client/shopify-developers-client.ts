@@ -1,3 +1,4 @@
+import {ensureAuthenticatedDeveloperPlatform} from '@shopify/cli-kit/node/session'
 import {
   CreateAppMutation,
   CreateAppMutationVariables,
@@ -11,7 +12,7 @@ import {
 // import {SpecificationsQuery, SpecificationsQueryVariables, SpecificationsQuerySchema} from './shopify-developers-client/graphql/specifications.js'
 import {RemoteSpecification} from '../../api/graphql/extension_specifications.js'
 import {DeveloperPlatformClient, Paginateable, ActiveAppVersion} from '../developer-platform-client.js'
-import {PartnersSession} from '../../../cli/services/context/partner-account-info.js'
+import {PartnersSession, fetchCurrentAccountInformation} from '../../../cli/services/context/partner-account-info.js'
 import {filterDisabledBetas} from '../../../cli/services/dev/fetch.js'
 import {MinimalOrganizationApp, Organization, OrganizationApp, OrganizationStore} from '../../models/organization.js'
 import {AllAppExtensionRegistrationsQuerySchema} from '../../api/graphql/all_app_extension_registrations.js'
@@ -74,14 +75,13 @@ export class ShopifyDevelopersClient implements DeveloperPlatformClient {
       if (isUnitTest()) {
         throw new Error('ShopifyDevelopersClient.session() should not be invoked dynamically in a unit test')
       }
-      // Need to replace with actual auth
+      const token = await ensureAuthenticatedDeveloperPlatform()
       this._session = {
-        token: 'token',
-        accountInfo: {
-          type: 'UserAccount',
-          email: 'mail@example.com',
-        },
+        token,
+        accountInfo: {type: 'UnknownAccount'},
       }
+      const accountInfo = await fetchCurrentAccountInformation(this)
+      this._session = {token, accountInfo}
     }
     return this._session
   }

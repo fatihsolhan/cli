@@ -48,6 +48,31 @@ ${outputToken.json(scopes)}
 }
 
 /**
+ * Ensure that we have a valid session to access the Partners API.
+ * If SHOPIFY_CLI_PARTNERS_TOKEN exists, that token will be used to obtain a valid Partners Token
+ * If SHOPIFY_CLI_PARTNERS_TOKEN exists, scopes will be ignored.
+ *
+ * @param scopes - Optional array of extra scopes to authenticate with.
+ * @param env - Optional environment variables to use.
+ * @param options - Optional extra options to use.
+ * @returns The access token for the Partners API.
+ */
+export async function ensureAuthenticatedDeveloperPlatform(
+  scopes: string[] = [],
+  env = process.env,
+  options: EnsureAuthenticatedAdditionalOptions = {},
+): Promise<string> {
+  outputDebug(outputContent`Ensuring that the user is authenticated with the Developer Platform API with the following scopes:
+${outputToken.json(scopes)}
+`)
+  const tokens = await ensureAuthenticated({developerPlatformApi: {scopes}}, env, options)
+  if (!tokens) {
+    throw new BugError('No Developer Platform token found after ensuring authenticated')
+  }
+  return tokens.developerPlatform!
+}
+
+/**
  * Ensure that we have a valid session to access the Storefront API.
  *
  * @param scopes - Optional array of extra scopes to authenticate with.

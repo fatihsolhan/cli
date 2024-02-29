@@ -15,6 +15,7 @@ export interface ExchangeScopes {
   partners: string[]
   storefront: string[]
   businessPlatform: string[]
+  developerPlatform: string[]
 }
 /**
  * Given a valid authorization code, request an identity access token.
@@ -50,11 +51,12 @@ export async function exchangeAccessForApplicationTokens(
 ): Promise<{[x: string]: ApplicationToken}> {
   const token = identityToken.accessToken
 
-  const [partners, storefront, businessPlatform, admin] = await Promise.all([
+  const [partners, storefront, businessPlatform, admin, developerPlatform] = await Promise.all([
     requestAppToken('partners', token, scopes.partners),
     requestAppToken('storefront-renderer', token, scopes.storefront),
     requestAppToken('business-platform', token, scopes.businessPlatform),
     store ? requestAppToken('admin', token, scopes.admin, store) : {},
+    requestAppToken('developer-platform', token, scopes.developerPlatform),
   ])
 
   return {
@@ -62,6 +64,7 @@ export async function exchangeAccessForApplicationTokens(
     ...storefront,
     ...businessPlatform,
     ...admin,
+    ...developerPlatform,
   }
 }
 
@@ -185,6 +188,9 @@ async function tokenRequest(params: {[key: string]: string}): Promise<Result<Tok
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload: any = await res.json()
 
+  console.log(params)
+  console.log(payload)
+
   if (res.ok) return ok(payload)
   return err(payload.error)
 }
@@ -202,6 +208,6 @@ function buildApplicationToken(result: TokenRequestResult): ApplicationToken {
   return {
     accessToken: result.access_token,
     expiresAt: new Date(Date.now() + result.expires_in * 1000),
-    scopes: result.scope.split(' '),
+    scopes: result.scope?.split(' ') || [],
   }
 }

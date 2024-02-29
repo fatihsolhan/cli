@@ -9,7 +9,7 @@ import {BugError} from '../../../public/node/error.js'
  */
 export function allDefaultScopes(extraScopes: string[] = []): string[] {
   let scopes = allAPIs.map(defaultApiScopes).flat()
-  scopes = ['openid', ...scopes, ...extraScopes].map(scopeTransform)
+  scopes = [...scopes, ...extraScopes].map(scopeTransform)
   return Array.from(new Set(scopes))
 }
 
@@ -35,6 +35,8 @@ function defaultApiScopes(api: API): string[] {
       return ['cli']
     case 'business-platform':
       return ['destinations']
+    case 'developer-platform':
+      return []
     default:
       throw new BugError(`Unknown API: ${api}`)
   }

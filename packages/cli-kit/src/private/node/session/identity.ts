@@ -55,6 +55,14 @@ export function applicationId(api: API): string {
         return 'ace6dc89-b526-456d-a942-4b8ef6acda4b'
       }
     }
+    case 'developer-platform': {
+      const environment = serviceEnvironment()
+      if (environment === Environment.Production) {
+        return 'uuid-to-be-created'
+      } else {
+        return '206b1d9b-db64-4e23-8b54-6705d20a201f'
+      }
+    }
     default:
       throw new BugError(`Application id for API of type: ${api}`)
   }

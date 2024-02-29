@@ -53,6 +53,15 @@ interface PartnersAPIOAuthOptions {
 }
 
 /**
+ * A scope supported by the Developer Platform API.
+ */
+type DeveloperPlatformAPIScope = 'cli' | string
+interface DeveloperPlatformAPIOAuthOptions {
+  /** List of scopes to request permissions for. */
+  scopes: DeveloperPlatformAPIScope[]
+}
+
+/**
  * A scope supported by the Storefront Renderer API.
  */
 type StorefrontRendererScope = 'devtools' | string
@@ -77,6 +86,7 @@ export interface OAuthApplications {
   storefrontRendererApi?: StorefrontRendererAPIOAuthOptions
   partnersApi?: PartnersAPIOAuthOptions
   businessPlatformApi?: BusinessPlatformAPIOAuthOptions
+  developerPlatformApi?: DeveloperPlatformAPIOAuthOptions
 }
 
 export interface OAuthSession {
@@ -84,6 +94,7 @@ export interface OAuthSession {
   partners?: string
   storefront?: string
   businessPlatform?: string
+  developerPlatform?: string
 }
 
 /**
@@ -209,6 +220,8 @@ async function executeCompleteFlow(applications: OAuthApplications, identityFqdn
 
   // Exchange identity token for application tokens
   outputDebug(outputContent`CLI token received. Exchanging it for application tokens...`)
+  outputDebug(identityToken.accessToken)
+  outputDebug(identityToken.refreshToken)
   const result = await exchangeAccessForApplicationTokens(identityToken, exchangeScopes, store)
 
   const session: Session = {
@@ -342,6 +355,11 @@ async function tokensFor(applications: OAuthApplications, session: Session, fqdn
     tokens.businessPlatform = fqdnSession.applications[appId]?.accessToken
   }
 
+  if (applications.developerPlatformApi) {
+    const appId = applicationId('developer-platform')
+    tokens.businessPlatform = fqdnSession.applications[appId]?.accessToken
+  }
+
   return tokens
 }
 
@@ -357,7 +375,8 @@ function getFlattenScopes(apps: OAuthApplications): string[] {
   const partner = apps.partnersApi?.scopes || []
   const storefront = apps.storefrontRendererApi?.scopes || []
   const businessPlatform = apps.businessPlatformApi?.scopes || []
-  const requestedScopes = [...admin, ...partner, ...storefront, ...businessPlatform]
+  const developerPlatform = apps.developerPlatformApi?.scopes || []
+  const requestedScopes = [...admin, ...partner, ...storefront, ...businessPlatform, ...developerPlatform]
   return allDefaultScopes(requestedScopes)
 }
 
@@ -372,11 +391,13 @@ function getExchangeScopes(apps: OAuthApplications): ExchangeScopes {
   const partnerScope = apps.partnersApi?.scopes || []
   const storefrontScopes = apps.storefrontRendererApi?.scopes || []
   const businessPlatformScopes = apps.businessPlatformApi?.scopes || []
+  const developerPlatformScopes = apps.developerPlatformApi?.scopes || []
   return {
     admin: apiScopes('admin', adminScope),
     partners: apiScopes('partners', partnerScope),
     storefront: apiScopes('storefront-renderer', storefrontScopes),
     businessPlatform: apiScopes('business-platform', businessPlatformScopes),
+    developerPlatform: apiScopes('developer-platform', developerPlatformScopes),
   }
 }
 

@@ -44,6 +44,12 @@ export async function validateSession(
     tokensAreExpired = tokensAreExpired || isTokenExpired(token)
   }
 
+  if (applications.developerPlatformApi) {
+    const appId = applicationId('developer-platform')
+    const token = session.applications[appId]!
+    tokensAreExpired = tokensAreExpired || isTokenExpired(token)
+  }
+
   if (applications.storefrontRendererApi) {
     const appId = applicationId('storefront-renderer')
     const token = session.applications[appId]!
