@@ -14,6 +14,14 @@ export interface MinimalOrganizationApp {
   organizationId: string
 }
 
+export interface MinimalRunEvent {
+  type: 'function-run'
+  payload: {
+    input: string
+    invocationId: string
+  }
+}
+
 export type OrganizationApp = MinimalOrganizationApp & {
   apiSecretKeys: {
     secret: string
