@@ -318,7 +318,7 @@ export class ExtensionInstance<TConfiguration extends BaseConfigType = BaseConfi
 
   async bundleConfig({identifiers, developerPlatformClient, apiKey}: ExtensionBundleConfigOptions) {
     const configValue = await this.deployConfig({apiKey, developerPlatformClient})
-    if (!configValue) return undefined
+    if (!configValue) return []
 
     if (this.isUuidManaged()) {
       return {

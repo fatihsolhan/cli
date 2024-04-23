@@ -437,6 +437,7 @@ class AppLoader {
       this.abortOrReport.bind(this),
     )
 
+    console.log('config', JSON.stringify(configuration, null,2))
     if (usedKnownSpecification) {
       entryPath = await this.findEntryPath(directory, specification)
     }

@@ -879,7 +879,7 @@ describe('ensuredeployConfirmed: handle non existent uuid managed extensions', (
     expect(developerPlatformClient.createExtension).not.toBeCalled()
     expect(got).toEqual({
       extensions: {},
-      extensionIds: {'point-of-sale': ['C_A']},
+      extensionIds: {'point-of-sale': 'C_A'},
       extensionsNonUuidManaged: {'point-of-sale': ['UUID_C_A']},
     })
   })
@@ -933,7 +933,7 @@ describe('ensuredeployConfirmed: handle non existent uuid managed extensions', (
     expect(developerPlatformClient.createExtension).toBeCalledTimes(1)
     expect(got).toEqual({
       extensions: {},
-      extensionIds: {'point-of-sale': ['C_A']},
+      extensionIds: {'point-of-sale': 'C_A'},
       extensionsNonUuidManaged: {'point-of-sale': ['UUID_C_A']},
     })
   })
@@ -999,7 +999,7 @@ describe('ensuredeployConfirmed: handle existent uuid managed extensions', () =>
     expect(developerPlatformClient.createExtension).not.toHaveBeenCalled()
     expect(got).toEqual({
       extensions: {},
-      extensionIds: {'point-of-sale': ['C_A']},
+      extensionIds: {'point-of-sale': 'C_A'},
       extensionsNonUuidManaged: {'point-of-sale': ['UUID_C_A']},
     })
   })

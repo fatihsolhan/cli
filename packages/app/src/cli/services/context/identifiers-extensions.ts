@@ -114,8 +114,21 @@ export async function deployConfirmed(
     extensionsToCreate: LocalSource[]
   },
 ) {
+
+  const globalConfigSpecs =
+    options.app.specifications
+      ?.filter((specification) => specification.extensionManagedInToml)
+      .map((specification) => specification.identifier) ?? []
+  const extensionsManagedInConfig = extensionRegistrations.filter((registration) => {
+    return globalConfigSpecs.includes(registration.type.toLowerCase())
+  })
+  const extensionsNotManagedInConfig = extensionRegistrations.filter((registration) => {
+    return !globalConfigSpecs.includes(registration.type.toLowerCase())
+  })
+  const allExtensionsManagedInConfig = configurationRegistrations.concat(extensionsManagedInConfig)
+
   const {extensionsNonUuidManaged, extensionsIdsNonUuidManaged} = await ensureNonUuidManagedExtensionsIds(
-    configurationRegistrations,
+    allExtensionsManagedInConfig,
     options.app,
     options.appId,
     options.includeDraftExtensions,
@@ -133,12 +146,14 @@ export async function deployConfirmed(
 
   // For extensions we also need the match by ID, not only UUID (doesn't apply to functions)
   for (const [localIdentifier, uuid] of Object.entries(validMatches)) {
-    const registration = extensionRegistrations.find((registration) => registration.uuid === uuid)
+    const registration = extensionsNotManagedInConfig.find((registration) => registration.uuid === uuid)
     if (registration) validMatchesById[localIdentifier] = registration.id
   }
 
   return {
     extensions: validMatches,
+    // We neeed to figure out how to handle a extension with a list of registrations
+    // This should only affect the dev command to push the draft content
     extensionIds: {...validMatchesById, ...mapExtensionsIdsNonUuidManaged(extensionsIdsNonUuidManaged)},
     extensionsNonUuidManaged,
   }
