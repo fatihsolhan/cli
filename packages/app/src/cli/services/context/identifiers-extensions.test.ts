@@ -570,7 +570,7 @@ describe('matchmaking returns ok with some pending confirmation', () => {
       },
     })
   })
-  test('ensuredeployConfirmed', async () => {
+  test('deployConfirmed', async () => {
     // Given
     const extensionsToCreate: LocalSource[] = []
     const validMatches = {'extension-b': 'UUID_B'}
@@ -620,7 +620,7 @@ describe('matchmaking returns ok with some pending confirmation', () => {
       validMatches: {},
     })
   })
-  test('ensuredeployConfirmed: creates non confirmed as new extensions', async () => {
+  test('deployConfirmed: creates non confirmed as new extensions', async () => {
     // Given
     const extensionsToCreate: LocalSource[] = [EXTENSION_B]
     const validMatches = {}
@@ -671,7 +671,7 @@ describe('matchmaking returns ok with nothing pending', () => {
       validMatches: {EXTENSION_A: 'UUID_A', EXTENSION_A_2: 'UUID_A_2'},
     })
   })
-  test('ensuredeployConfirmed: does not create any extension', async () => {
+  test('deployConfirmed: does not create any extension', async () => {
     // Given
     const extensionsToCreate: LocalSource[] = []
     const validMatches = {EXTENSION_A: 'UUID_A', EXTENSION_A_2: 'UUID_A_2'}
@@ -731,7 +731,7 @@ describe('includes functions', () => {
       validMatches: {EXTENSION_A: 'UUID_A', FUNCTION_A: 'FUNCTION_A_UUID'},
     })
   })
-  test('ensuredeployConfirmed: does not create any extension', async () => {
+  test('deployConfirmed: does not create any extension', async () => {
     // Given
     const extensionsToCreate: LocalSource[] = []
     const validMatches = {EXTENSION_A: 'UUID_A', FUNCTION_A: 'FUNCTION_A_UUID'}
@@ -850,7 +850,7 @@ describe('ensureExtensionsIds: Migrates extension', () => {
   })
 })
 
-describe('ensuredeployConfirmed: handle non existent uuid managed extensions', () => {
+describe('deployConfirmed: handle non existent uuid managed extensions', () => {
   test('when include config on deploy flag is enabled configuration extensions are created', async () => {
     // Given
     const extensionsToCreate: LocalSource[] = []
@@ -969,7 +969,7 @@ describe('ensuredeployConfirmed: handle non existent uuid managed extensions', (
     })
   })
 })
-describe('ensuredeployConfirmed: handle existent uuid managed extensions', () => {
+describe('deployConfirmed: handle existent uuid managed extensions', () => {
   test('when the include config on deploy flag is enabled configuration extensions are not created but the uuids are returned', async () => {
     // Given
     const extensionsToCreate: LocalSource[] = []
