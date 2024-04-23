@@ -321,10 +321,7 @@ function loadExtensionsIdentifiersBreakdown(
     activeAppVersion?.appModuleVersions
       .filter((module) => !module.specification || module.specification.experience === 'extension')
       .filter((extension) =>
-        // karen.xie: this is what it was in the original prototype but it causes a few tests to fail
-        // removed the identifier check until i understand why this is needed
-        // specs.find((spec) => spec.identifier === extension.specification?.identifier && !spec.extensionManagedInToml),
-        specs.find((spec) => !spec.extensionManagedInToml),
+        specs.find((spec) => spec.identifier === extension.specification?.identifier && !spec.extensionManagedInToml),
       ) || []
 
   const extensionsToUpdate = Object.entries(localRegistration)
