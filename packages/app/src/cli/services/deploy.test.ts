@@ -11,6 +11,7 @@ import {
   testAppConfigExtensions,
   DEFAULT_CONFIG,
   testDeveloperPlatformClient,
+  testWebhookSubscriptionExtensions,
 } from '../models/app/app.test-data.js'
 import {updateAppIdentifiers} from '../models/app/identifiers.js'
 import {AppInterface} from '../models/app/app.js'
@@ -341,6 +342,64 @@ describe('deploy', () => {
     expect(updateAppIdentifiers).toHaveBeenCalledOnce()
   })
 
+  test('pushes a configuration extension that contains multiple modules if include config on deploy', async () => {
+    // Given
+    const webhookSubscriptionExtension = await testWebhookSubscriptionExtensions()
+    const localApp = {
+      allExtensions: [webhookSubscriptionExtension],
+      configuration: {...DEFAULT_CONFIG, build: {include_config_on_deploy: true}},
+    }
+    const app = testApp(localApp)
+    const commitReference = 'https://github.com/deploytest/repo/commit/d4e5ce7999242b200acde378654d62c14b211bcc'
+
+    // When
+    await testDeployBundle({app, released: false, commitReference, developerPlatformClient})
+
+    // Then
+    const expectedAppConfigs = [
+      {
+        api_version: '2024-01',
+        uri: 'https://my-app.com/webhooks',
+        topic: 'orders/delete',
+      },
+      {
+        api_version: '2024-01',
+        uri: 'https://my-app.com/webhooks',
+        topic: 'orders/create',
+      },
+      {
+        api_version: '2024-01',
+        uri: 'https://my-app.com/webhooks',
+        topic:  'orders/update',
+      },
+      {
+        api_version: '2024-01',
+        uri: 'https://my-app.com/webhooks/products',
+        topic: 'products/update',
+      },
+    ]
+    // karen.xie: why are these uuids undefined except for one?
+    const expectedAppModules = expectedAppConfigs.map((config) => {
+      return {
+        uuid: webhookSubscriptionExtension.localIdentifier,
+        config: JSON.stringify(config),
+        context: '',
+        handle: webhookSubscriptionExtension.handle,
+      }
+    })
+    expect(uploadExtensionsBundle).toHaveBeenCalledWith({
+      apiKey: 'app-id',
+      organizationId: 'org-id',
+      appModules: expectedAppModules,
+      developerPlatformClient,
+      extensionIds: {},
+      release: true,
+      commitReference,
+    })
+    expect(bundleAndBuildExtensions).toHaveBeenCalledOnce()
+    expect(updateAppIdentifiers).toHaveBeenCalledOnce()
+  })
+
   test('doesnt push the configuration extension if include config on deploy is disabled', async () => {
     // Given
     const extensionNonUuidManaged = await testAppConfigExtensions()
@@ -362,6 +421,10 @@ describe('deploy', () => {
     })
     expect(bundleAndBuildExtensions).toHaveBeenCalledOnce()
     expect(updateAppIdentifiers).toHaveBeenCalledOnce()
+  })
+
+  test('doesnt push a configuration extension that contains multiple modules if include config on deploy is disabled', async () => {
+
   })
 
   test('shows a success message', async () => {
