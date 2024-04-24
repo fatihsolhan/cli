@@ -271,7 +271,6 @@ describe('bundleConfig', async () => {
     )
   })
 
-  // TODO: remove this test when we remove subscriptions field from webhooks
   test('returns arrays formatted properly inside the config', async () => {
     const extensionInstance = await testWebhookExtensions()
 
