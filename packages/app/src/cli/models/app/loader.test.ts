@@ -18,6 +18,7 @@ import {getCachedAppInfo} from '../../services/local-storage.js'
 import use from '../../services/app/config/use.js'
 import {WebhooksSchema} from '../extensions/specifications/app_config_webhook_schemas/webhooks_schema.js'
 import {WebhooksConfig} from '../extensions/specifications/types/app_config_webhook.js'
+import {Flag} from '../../services/dev/fetch.js'
 import {describe, expect, beforeEach, afterEach, beforeAll, test, vi} from 'vitest'
 import {
   installNodeModules,
@@ -1866,13 +1867,7 @@ wrong = "property"
     ])
   })
 
-  /* karen.xie: come back to this - this test is failing
-     It appears that the `webhooks` module is always returning an empty array for the subscriptions
-     in the config.
-     When calling `createConfigExtensionInstances` in the loader, it appears to have the right contents
-     but it's missing when verifying the contents of the config in this test
-  */
-  test.skip('loads the app with webhook subscription extension configured inside the toml file', async () => {
+  test('loads the app with webhook subscription extension configured inside the toml file', async () => {
     // Given
     const appConfigurationWithWebhooks = `
     name = "for-testing-webhooks"
@@ -1896,7 +1891,7 @@ wrong = "property"
     await writeConfig(appConfigurationWithWebhooks)
 
     // When
-    const app = await loadApp({directory: tmpDir, specifications})
+    const app = await loadApp({directory: tmpDir, specifications, remoteFlags: [Flag.DeclarativeWebhooks]})
 
     // Then
     expect(app.allExtensions).toHaveLength(5)
