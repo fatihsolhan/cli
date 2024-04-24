@@ -184,8 +184,10 @@ export async function ensureNonUuidManagedExtensionsIds(
         const matchedIds: string[] = []
         const newExtensionsToCreate: ExtensionInstance[] = []
 
-        localConfigArray?.forEach((localConfig) => {
-          const hasMatch = possibleMatches?.some((possibleMatch) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        localConfigArray?.forEach((localConfig: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const hasMatch = possibleMatches?.some((possibleMatch: any) => {
             const remoteConfigString = possibleMatch.activeVersion?.config
             const remoteConfigObj = remoteConfigString ? JSON.parse(remoteConfigString) : ''
             if (localConfig.uri === remoteConfigObj.uri && localConfig.topic === remoteConfigObj.topic) {
