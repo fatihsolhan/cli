@@ -370,7 +370,7 @@ describe('deploy', () => {
       {
         api_version: '2024-01',
         uri: 'https://my-app.com/webhooks',
-        topic:  'orders/update',
+        topic: 'orders/update',
       },
       {
         api_version: '2024-01',
@@ -423,9 +423,7 @@ describe('deploy', () => {
     expect(updateAppIdentifiers).toHaveBeenCalledOnce()
   })
 
-  test('doesnt push a configuration extension that contains multiple modules if include config on deploy is disabled', async () => {
-
-  })
+  test('doesnt push a configuration extension that contains multiple modules if include config on deploy is disabled', async () => {})
 
   test('shows a success message', async () => {
     // Given

@@ -9,11 +9,11 @@ import {getFlowExtensionsToMigrate, migrateFlowExtensions} from '../dev/migrate-
 import {AppInterface} from '../../models/app/app.js'
 import {DeveloperPlatformClient} from '../../utilities/developer-platform-client.js'
 import {getPaymentsExtensionsToMigrate, migrateAppModules} from '../dev/migrate-app-module.js'
+import {ExtensionInstance} from '../../models/extensions/extension-instance.js'
+import {ExtensionSpecification} from '../../models/extensions/specification.js'
 import {outputCompleted} from '@shopify/cli-kit/node/output'
 import {AbortSilentError} from '@shopify/cli-kit/node/error'
 import {getPathValue} from '@shopify/cli-kit/common/object'
-import {ExtensionInstance} from '../../models/extensions/extension-instance.js'
-import {ExtensionSpecification} from '../../models/extensions/specification.js'
 
 interface AppWithExtensions {
   extensionRegistrations: RemoteSource[]
@@ -302,7 +302,7 @@ async function createExtensions(
 }
 
 // karen.xie this name sucks too
-async function multipleConfigs(extension: ExtensionInstance): Promise<any[]> {
+async function multipleConfigs(extension: ExtensionInstance): Promise<unknown[]> {
   if (!extension.specification.multipleModuleConfigPath) return [extension.configuration]
 
   const configContent = await extension.commonDeployConfig('')

@@ -12,7 +12,7 @@ import {
   AllAppExtensionRegistrationsQuerySchema,
   RemoteExtensionRegistrations,
 } from '../../api/graphql/all_app_extension_registrations.js'
-import { ExtensionSpecification } from '../../models/extensions/specification.js'
+import {ExtensionSpecification} from '../../models/extensions/specification.js'
 
 export interface ConfigExtensionIdentifiersBreakdown {
   existingFieldNames: string[]
@@ -294,7 +294,7 @@ async function resolveRemoteExtensionIdentifiersBreakdown(
     activeAppVersion,
     localRegistration,
     toCreate,
-    specs
+    specs,
   )
 
   const dashboardOnlyFinal = dashboardOnly.filter(
