@@ -64,6 +64,7 @@ export interface ExtensionSpecification<TConfiguration extends BaseConfigType = 
   transform?: (content: object) => object
   reverseTransform?: (content: object, options?: {flags?: Flag[]}) => object
   simplify?: (remoteConfig: SpecsAppConfiguration) => SpecsAppConfiguration
+  matchesRemoteConfig?: (remoteConfig: object, localConfig: object) => boolean
   extensionManagedInToml?: boolean
   multipleModuleConfigPath?: string
 }
@@ -119,6 +120,7 @@ export function createExtensionSpecification<TConfiguration extends BaseConfigTy
     transform: spec.transform,
     reverseTransform: spec.reverseTransform,
     simplify: spec.simplify,
+    matchesRemoteConfig: spec.matchesRemoteConfig ?? (() => false),
     experience: spec.experience ?? 'extension',
     extensionManagedInToml: spec.extensionManagedInToml ?? false,
     multipleModuleConfigPath: spec.multipleModuleConfigPath,
@@ -142,6 +144,7 @@ export function createConfigExtensionSpecification<TConfiguration extends BaseCo
   simplify?: SimplifyConfig
   extensionManagedInToml?: boolean
   multipleModuleConfigPath?: string
+  matchesRemoteConfig?: (remoteConfig: object, localConfig: object) => boolean
 }): ExtensionSpecification<TConfiguration> {
   const appModuleFeatures = spec.appModuleFeatures ?? (() => [])
   return createExtensionSpecification({
@@ -153,6 +156,7 @@ export function createConfigExtensionSpecification<TConfiguration extends BaseCo
     transform: resolveAppConfigTransform(spec.transformConfig),
     reverseTransform: resolveReverseAppConfigTransform(spec.schema, spec.transformConfig),
     simplify: resolveSimplifyAppConfig(spec.simplify),
+    matchesRemoteConfig: spec.matchesRemoteConfig,
     extensionManagedInToml: spec.extensionManagedInToml,
     multipleModuleConfigPath: spec.multipleModuleConfigPath,
     experience: 'configuration',

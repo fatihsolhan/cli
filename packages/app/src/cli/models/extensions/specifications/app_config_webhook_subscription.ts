@@ -106,6 +106,11 @@ function transformToWebhookSubscriptionConfig(content: object) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function matchesRemoteConfig(remoteConfig: any, localConfig: any): boolean {
+  return localConfig.uri === remoteConfig.uri && localConfig.topic === remoteConfig.topic
+}
+
 const WebhookSubscriptionTransformConfig: CustomTransformationConfig = {
   forward: (content: object) => transformFromWebhookSubscriptionConfig(content),
   reverse: (content: object) => transformToWebhookSubscriptionConfig(content),
@@ -118,6 +123,7 @@ const appWebhookSubscriptionSpec = createConfigExtensionSpecification({
   simplify: WebhookSimplifyConfig,
   extensionManagedInToml: true,
   multipleModuleConfigPath: 'subscriptions',
+  matchesRemoteConfig,
 })
 
 export default appWebhookSubscriptionSpec

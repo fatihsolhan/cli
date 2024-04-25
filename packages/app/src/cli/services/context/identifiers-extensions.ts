@@ -300,7 +300,7 @@ async function ensureExtensionIdsForExtensionsManagedInToml(
           const hasMatch = possibleMatches?.some((possibleMatch: any) => {
             const remoteConfigString = possibleMatch.activeVersion?.config
             const remoteConfigObj = remoteConfigString ? JSON.parse(remoteConfigString) : ''
-            if (localConfig.uri === remoteConfigObj.uri && localConfig.topic === remoteConfigObj.topic) {
+            if (extension.specification.matchesRemoteConfig?.(remoteConfigObj, localConfig)) {
               matchedUuids.push(possibleMatch.uuid)
               matchedIds.push(possibleMatch.id)
               return true
