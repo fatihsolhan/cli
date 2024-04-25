@@ -168,10 +168,10 @@ export async function ensureNonUuidManagedExtensionsIds(
   const validMatches: {[key: string]: string[]} = {}
   const validMatchesById: {[key: string]: string[]} = {}
 
-  const extensionsInGlobalConfig = localExtensionRegistrations.filter((ext) => ext.specification.extensionManagedInToml)
+  const extensionsManagedInToml = localExtensionRegistrations.filter((ext) => ext.specification.extensionManagedInToml)
 
   await Promise.all(
-    extensionsInGlobalConfig.map(async (extension) => {
+    extensionsManagedInToml.map(async (extension) => {
       // are there any matches for global configs?
       const possibleMatches = remoteConfigurationRegistrations.filter((remote) => {
         return remote.type === developerPlatformClient.toExtensionGraphQLType(extension.graphQLType)
@@ -243,10 +243,10 @@ export async function ensureNonUuidManagedExtensionsIds(
   )
 
   // karen.xie from here to the return statement, only applies to config modules
-  const extensionNotInGlobalConfig = localExtensionRegistrations.filter(
+  const extensionsNotManagedInToml = localExtensionRegistrations.filter(
     (ext) => !ext.specification.extensionManagedInToml,
   )
-  extensionNotInGlobalConfig.forEach((local) => {
+  extensionsNotManagedInToml.forEach((local) => {
     const possibleMatch = remoteConfigurationRegistrations.find((remote) => {
       return remote.type === developerPlatformClient.toExtensionGraphQLType(local.graphQLType)
     })
