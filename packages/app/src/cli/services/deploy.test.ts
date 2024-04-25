@@ -351,9 +351,23 @@ describe('deploy', () => {
     }
     const app = testApp(localApp)
     const commitReference = 'https://github.com/deploytest/repo/commit/d4e5ce7999242b200acde378654d62c14b211bcc'
+    const uuids = [
+      'webhook-subscription-1',
+      'webhook-subscription-2',
+      'webhook-subscription-3',
+      'webhook-subscription-4',
+    ]
+    const identifiers: {[key: string]: string[]} = {}
+    identifiers[webhookSubscriptionExtension.localIdentifier] = uuids
 
     // When
-    await testDeployBundle({app, released: false, commitReference, developerPlatformClient})
+    await testDeployBundle({
+      app,
+      released: false,
+      commitReference,
+      developerPlatformClient,
+      configurationModuleIdentifiers: identifiers,
+    })
 
     // Then
     const expectedAppConfigs = [
@@ -378,10 +392,9 @@ describe('deploy', () => {
         topic: 'products/update',
       },
     ]
-    // karen.xie: why are these uuids undefined except for one?
-    const expectedAppModules = expectedAppConfigs.map((config) => {
+    const expectedAppModules = expectedAppConfigs.map((config, index) => {
       return {
-        uuid: webhookSubscriptionExtension.localIdentifier,
+        uuid: uuids[index],
         config: JSON.stringify(config),
         context: '',
         handle: webhookSubscriptionExtension.handle,
@@ -565,6 +578,7 @@ interface TestDeployBundleInput {
   commitReference?: string
   appToDeploy?: AppInterface
   developerPlatformClient: DeveloperPlatformClient
+  configurationModuleIdentifiers?: {[key: string]: string[]}
 }
 
 async function testDeployBundle({
@@ -575,6 +589,7 @@ async function testDeployBundle({
   commitReference,
   appToDeploy,
   developerPlatformClient,
+  configurationModuleIdentifiers = {},
 }: TestDeployBundleInput) {
   // Given
   const extensionsPayload: {[key: string]: string} = {}
@@ -583,7 +598,8 @@ async function testDeployBundle({
   }
   const extensionsNonUuidPayload: {[key: string]: string[]} = {}
   for (const extension of app.allExtensions.filter((ext) => !ext.isUuidManaged())) {
-    extensionsNonUuidPayload[extension.localIdentifier] = [extension.localIdentifier]
+    const payloadValue = configurationModuleIdentifiers[extension.localIdentifier] ?? [extension.localIdentifier]
+    extensionsNonUuidPayload[extension.localIdentifier] = payloadValue
   }
   const identifiers = {
     app: 'app-id',
