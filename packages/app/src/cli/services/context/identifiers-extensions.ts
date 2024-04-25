@@ -164,107 +164,25 @@ export async function ensureNonUuidManagedExtensionsIds(
 
   localExtensionRegistrations = localExtensionRegistrations.filter((ext) => !ext.isUuidManaged())
 
-  const extensionsToCreate: LocalSource[] = []
-  const validMatches: {[key: string]: string[]} = {}
-  const validMatchesById: {[key: string]: string[]} = {}
-
-  const extensionsManagedInToml = localExtensionRegistrations.filter((ext) => ext.specification.extensionManagedInToml)
-
-  await Promise.all(
-    extensionsManagedInToml.map(async (extension) => {
-      // are there any matches for global configs?
-      const possibleMatches = remoteConfigurationRegistrations.filter((remote) => {
-        return remote.type === developerPlatformClient.toExtensionGraphQLType(extension.graphQLType)
-      })
-
-      // if there are existing webhook subscription extension registrations
-      if (possibleMatches.length > 0) {
-        const localConfigArray = await multipleConfigs(extension)
-        const matchedUuids: string[] = []
-        const matchedIds: string[] = []
-        const newExtensionsToCreate: ExtensionInstance[] = []
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        localConfigArray?.forEach((localConfig: any) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const hasMatch = possibleMatches?.some((possibleMatch: any) => {
-            const remoteConfigString = possibleMatch.activeVersion?.config
-            const remoteConfigObj = remoteConfigString ? JSON.parse(remoteConfigString) : ''
-            if (localConfig.uri === remoteConfigObj.uri && localConfig.topic === remoteConfigObj.topic) {
-              matchedUuids.push(possibleMatch.uuid)
-              matchedIds.push(possibleMatch.id)
-              return true
-            }
-          })
-          // if there are no matches, add the extension to create new extensions array
-          if (!hasMatch) {
-            newExtensionsToCreate.push(extension)
-          }
-        })
-
-        // creates the new extensions
-        const newExtensionRegistrationIds = await Promise.all(
-          newExtensionsToCreate?.map(async (extension) => {
-            const registration = await createExtension(
-              appId,
-              extension.graphQLType,
-              extension.handle,
-              developerPlatformClient,
-              extension.contextValue,
-            )
-            return [registration.id, registration.uuid]
-          }),
-        )
-        const newUuids = newExtensionRegistrationIds.flatMap(([, uuid]) => uuid!)
-        const newIds = newExtensionRegistrationIds.flatMap(([id]) => id!)
-        validMatches[extension.localIdentifier] = matchedUuids.concat(newUuids)
-        validMatchesById[extension.localIdentifier] = matchedIds.concat(newIds)
-      } else {
-        // creates all new extension instances
-        // this will create new uuids for each webhook subscription modules
-        const localSources = await buildExtensionsInGlobalToCreate(extension)
-        const extensionRegistrations = await Promise.all(
-          localSources.map(async (extension) => {
-            const createdExtension = await createExtension(
-              appId,
-              extension.graphQLType,
-              extension.handle,
-              developerPlatformClient,
-              extension.contextValue,
-            )
-            return [createdExtension.id, createdExtension.uuid]
-          }),
-        )
-
-        validMatches[extension.localIdentifier] = extensionRegistrations.flatMap(([, uuid]) => uuid!)
-        validMatchesById[extension.localIdentifier] = extensionRegistrations.flatMap(([id]) => id!)
-      }
-    }),
+  const {validMatches, validMatchesById} = await ensureExtensionIdsForExtensionsManagedInToml(
+    localExtensionRegistrations,
+    remoteConfigurationRegistrations,
+    developerPlatformClient,
+    appId,
   )
 
-  // karen.xie from here to the return statement, only applies to config modules
-  const extensionsNotManagedInToml = localExtensionRegistrations.filter(
-    (ext) => !ext.specification.extensionManagedInToml,
-  )
-  extensionsNotManagedInToml.forEach((local) => {
-    const possibleMatch = remoteConfigurationRegistrations.find((remote) => {
-      return remote.type === developerPlatformClient.toExtensionGraphQLType(local.graphQLType)
-    })
-    if (possibleMatch) {
-      validMatches[local.localIdentifier] = [possibleMatch.uuid]
-      validMatchesById[local.localIdentifier] = [possibleMatch.id]
-    } else extensionsToCreate.push(local)
-  })
+  const {validMatches: validMatchesForConfigurations, validMatchesById: validMatchesByIdForConfigurations} =
+    await ensureExtensionIdsForConfigurations(
+      localExtensionRegistrations,
+      remoteConfigurationRegistrations,
+      developerPlatformClient,
+      appId,
+    )
 
-  if (extensionsToCreate.length > 0) {
-    const newIdentifiers = await createExtensions(extensionsToCreate, appId, developerPlatformClient, false)
-    for (const [localIdentifier, registration] of Object.entries(newIdentifiers)) {
-      validMatches[localIdentifier] = [registration.uuid]
-      validMatchesById[localIdentifier] = [registration.id]
-    }
+  return {
+    extensionsNonUuidManaged: {...validMatches, ...validMatchesForConfigurations},
+    extensionsIdsNonUuidManaged: {...validMatchesById, ...validMatchesByIdForConfigurations},
   }
-
-  return {extensionsNonUuidManaged: validMatches, extensionsIdsNonUuidManaged: validMatchesById}
 }
 
 async function createExtensions(
@@ -349,4 +267,124 @@ export function shiftRegistrationsAround(
   })
   const allRegistrationsManagedInConfig = configurationRegistrations.concat(extensionsManagedInConfig)
   return {extensionsNotManagedInConfig, allRegistrationsManagedInConfig}
+}
+
+async function ensureExtensionIdsForExtensionsManagedInToml(
+  localExtensionRegistrations: ExtensionInstance[],
+  remoteConfigurationRegistrations: RemoteSource[],
+  developerPlatformClient: DeveloperPlatformClient,
+  appId: string,
+) {
+  const extensionsManagedInToml = localExtensionRegistrations.filter((ext) => ext.specification.extensionManagedInToml)
+
+  const validMatches: {[key: string]: string[]} = {}
+  const validMatchesById: {[key: string]: string[]} = {}
+
+  await Promise.all(
+    extensionsManagedInToml.map(async (extension) => {
+      // are there any matches for global configs?
+      const possibleMatches = remoteConfigurationRegistrations.filter((remote) => {
+        return remote.type === developerPlatformClient.toExtensionGraphQLType(extension.graphQLType)
+      })
+
+      // if there are existing webhook subscription extension registrations
+      if (possibleMatches.length > 0) {
+        const localConfigArray = await multipleConfigs(extension)
+        const matchedUuids: string[] = []
+        const matchedIds: string[] = []
+        const newExtensionsToCreate: ExtensionInstance[] = []
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        localConfigArray?.forEach((localConfig: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const hasMatch = possibleMatches?.some((possibleMatch: any) => {
+            const remoteConfigString = possibleMatch.activeVersion?.config
+            const remoteConfigObj = remoteConfigString ? JSON.parse(remoteConfigString) : ''
+            if (localConfig.uri === remoteConfigObj.uri && localConfig.topic === remoteConfigObj.topic) {
+              matchedUuids.push(possibleMatch.uuid)
+              matchedIds.push(possibleMatch.id)
+              return true
+            }
+          })
+          // if there are no matches, add the extension to create new extensions array
+          if (!hasMatch) {
+            newExtensionsToCreate.push(extension)
+          }
+        })
+
+        // creates the new extensions
+        const newExtensionRegistrationIds = await Promise.all(
+          newExtensionsToCreate?.map(async (extension) => {
+            const registration = await createExtension(
+              appId,
+              extension.graphQLType,
+              extension.handle,
+              developerPlatformClient,
+              extension.contextValue,
+            )
+            return [registration.id, registration.uuid]
+          }),
+        )
+        const newUuids = newExtensionRegistrationIds.flatMap(([, uuid]) => uuid!)
+        const newIds = newExtensionRegistrationIds.flatMap(([id]) => id!)
+        validMatches[extension.localIdentifier] = matchedUuids.concat(newUuids)
+        validMatchesById[extension.localIdentifier] = matchedIds.concat(newIds)
+      } else {
+        // creates all new extension instances
+        // this will create new uuids for each webhook subscription modules
+        const localSources = await buildExtensionsInGlobalToCreate(extension)
+        const extensionRegistrations = await Promise.all(
+          localSources.map(async (extension) => {
+            const createdExtension = await createExtension(
+              appId,
+              extension.graphQLType,
+              extension.handle,
+              developerPlatformClient,
+              extension.contextValue,
+            )
+            return [createdExtension.id, createdExtension.uuid]
+          }),
+        )
+
+        validMatches[extension.localIdentifier] = extensionRegistrations.flatMap(([, uuid]) => uuid!)
+        validMatchesById[extension.localIdentifier] = extensionRegistrations.flatMap(([id]) => id!)
+      }
+    }),
+  )
+  return {validMatches, validMatchesById}
+}
+
+async function ensureExtensionIdsForConfigurations(
+  localExtensionRegistrations: ExtensionInstance[],
+  remoteConfigurationRegistrations: RemoteSource[],
+  developerPlatformClient: DeveloperPlatformClient,
+  appId: string,
+) {
+  const extensionsNotManagedInToml = localExtensionRegistrations.filter(
+    (ext) => !ext.specification.extensionManagedInToml,
+  )
+
+  const validMatches: {[key: string]: string[]} = {}
+  const validMatchesById: {[key: string]: string[]} = {}
+  const extensionsToCreate: LocalSource[] = []
+
+  extensionsNotManagedInToml.forEach((local) => {
+    const possibleMatch = remoteConfigurationRegistrations.find((remote) => {
+      return remote.type === developerPlatformClient.toExtensionGraphQLType(local.graphQLType)
+    })
+    if (possibleMatch) {
+      validMatches[local.localIdentifier] = [possibleMatch.uuid]
+      validMatchesById[local.localIdentifier] = [possibleMatch.id]
+    } else extensionsToCreate.push(local)
+  })
+
+  if (extensionsToCreate.length > 0) {
+    const newIdentifiers = await createExtensions(extensionsToCreate, appId, developerPlatformClient, false)
+    for (const [localIdentifier, registration] of Object.entries(newIdentifiers)) {
+      validMatches[localIdentifier] = [registration.uuid]
+      validMatchesById[localIdentifier] = [registration.id]
+    }
+  }
+
+  return {validMatches, validMatchesById}
 }
