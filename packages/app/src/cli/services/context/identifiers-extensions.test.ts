@@ -1071,15 +1071,21 @@ describe('shiftRegistrationsAround', () => {
     ]
     const specifications = [appPOSSpec, appWebhookSubscriptionSpec]
 
-    // karen.xie add expectation that `extensionManagedInToml` has a spec that is managed in toml and has experience extension
+    const extensionManagedInTomlSpec = specifications.find(
+      (spec) => spec.identifier === extensionManagedInToml.type.toLowerCase(),
+    )
+    // karen.xie: this is 'configuration' because the local webhook-subscription spec is created as a configuration spec
+    expect(extensionManagedInTomlSpec?.experience).toEqual('configuration')
+    expect(extensionManagedInTomlSpec?.extensionManagedInToml).toEqual(true)
 
-    // Then
+    // When
     const {extensionsNotManagedInConfig, allRegistrationsManagedInConfig} = shiftRegistrationsAround(
       extensionRegistrations,
       configurationRegistrations,
       specifications,
     )
 
+    // Then
     expect(extensionsNotManagedInConfig).toEqual([REGISTRATION_B])
     expect(allRegistrationsManagedInConfig).toEqual([configurationRegistrations[0], extensionManagedInToml])
   })
@@ -1091,12 +1097,26 @@ describe('ensureNonUuidManagedExtensionsIds: for extensions managed in the TOML'
     const remoteSources: RemoteSource[] = []
     const app = options([await testWebhookSubscriptionExtensions()], [], {includeDeployConfig: true}).app
     const appId = 'appId'
-    const developerPlatformClient = testDeveloperPlatformClient()
 
-    // Then
+    let createExtensionCounter = 0
+    const developerPlatformClient = testDeveloperPlatformClient({
+      createExtension: async () => {
+        createExtensionCounter++
+        const registration = {
+          uuid: `webhook-subscription-${createExtensionCounter}`,
+          id: createExtensionCounter.toString(),
+          title: `Webhook Subscription ${createExtensionCounter}`,
+          type: 'WEBHOOK_SUBSCRIPTION',
+          contextValue: '',
+        }
+        return createExtensionResult(registration)
+      },
+    })
+
+    // When
+
     // karen.xie: expect that `createExtension` is called
     // and that the behaviour in `buildExtensionsInGlobalToCreate` is as expected
-
     const {extensionsNonUuidManaged, extensionsIdsNonUuidManaged} = await ensureNonUuidManagedExtensionsIds(
       remoteSources,
       app,
@@ -1105,16 +1125,18 @@ describe('ensureNonUuidManagedExtensionsIds: for extensions managed in the TOML'
       developerPlatformClient,
     )
 
+    // Then
     expect(developerPlatformClient.createExtension).toBeCalledTimes(4)
-
-    // karen.xie: `createExtension` is stubbed in `app.test-data.ts` to always return the same response
-    // which is why we have 4 of the same extension UUID
-    // see above for an example of how to have the developerPlatformClient return different values
     expect(extensionsNonUuidManaged).toEqual({
-      'webhook-subscription': ['extension-uuid', 'extension-uuid', 'extension-uuid', 'extension-uuid'],
+      'webhook-subscription': [
+        'webhook-subscription-1',
+        'webhook-subscription-2',
+        'webhook-subscription-3',
+        'webhook-subscription-4',
+      ],
     })
     expect(extensionsIdsNonUuidManaged).toEqual({
-      'webhook-subscription': ['extension-id', 'extension-id', 'extension-id', 'extension-id'],
+      'webhook-subscription': ['1', '2', '3', '4'],
     })
   })
 
@@ -1137,9 +1159,23 @@ describe('ensureNonUuidManagedExtensionsIds: for extensions managed in the TOML'
     const remoteSources = [extensionManagedInToml]
     const app = options([await testWebhookSubscriptionExtensions()], [], {includeDeployConfig: true}).app
     const appId = 'appId'
-    const developerPlatformClient = testDeveloperPlatformClient()
 
-    // Then
+    let createExtensionCounter = 0
+    const developerPlatformClient = testDeveloperPlatformClient({
+      createExtension: async () => {
+        createExtensionCounter++
+        const registration = {
+          uuid: `webhook-subscription-${createExtensionCounter}`,
+          id: createExtensionCounter.toString(),
+          title: `Webhook Subscription ${createExtensionCounter}`,
+          type: 'WEBHOOK_SUBSCRIPTION',
+          contextValue: '',
+        }
+        return createExtensionResult(registration)
+      },
+    })
+
+    // When
     const {extensionsNonUuidManaged, extensionsIdsNonUuidManaged} = await ensureNonUuidManagedExtensionsIds(
       remoteSources,
       app,
@@ -1148,16 +1184,18 @@ describe('ensureNonUuidManagedExtensionsIds: for extensions managed in the TOML'
       developerPlatformClient,
     )
 
+    // Then
     expect(developerPlatformClient.createExtension).toBeCalledTimes(3)
-
-    // karen.xie: `createExtension` is stubbed in `app.test-data.ts` to always return the same response
-    // which is why we have 4 of the same extension UUID
-    // see above for an example of how to have the developerPlatformClient return different values
     expect(extensionsNonUuidManaged).toEqual({
-      'webhook-subscription': ['webhook-subscription-uuid', 'extension-uuid', 'extension-uuid', 'extension-uuid'],
+      'webhook-subscription': [
+        'webhook-subscription-uuid',
+        'webhook-subscription-1',
+        'webhook-subscription-2',
+        'webhook-subscription-3',
+      ],
     })
     expect(extensionsIdsNonUuidManaged).toEqual({
-      'webhook-subscription': ['webhook-subscription-id', 'extension-id', 'extension-id', 'extension-id'],
+      'webhook-subscription': ['webhook-subscription-id', '1', '2', '3'],
     })
   })
 })
