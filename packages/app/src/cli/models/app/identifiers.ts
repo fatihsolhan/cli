@@ -9,7 +9,7 @@ export interface IdentifiersExtensions {
   [localIdentifier: string]: string
 }
 
-export interface IdentifiersExtensionsList {
+interface IdentifiersExtensionsList {
   [localIdentifier: string]: string[]
 }
 
