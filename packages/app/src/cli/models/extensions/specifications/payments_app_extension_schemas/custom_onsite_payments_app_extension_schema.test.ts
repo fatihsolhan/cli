@@ -87,6 +87,58 @@ describe('CustomOnsitePaymentsAppExtensionSchema', () => {
       ]),
     )
   })
+
+  test('returns an error if checkout_payment_method_fields has too many fields', async () => {
+    // When/Then
+    expect(() =>
+      CustomOnsitePaymentsAppExtensionSchema.parse({
+        ...config,
+        checkout_payment_method_fields: [
+          {
+            key: 'key1',
+            type: 'string',
+            required: 'true',
+          },
+          {
+            key: 'key2',
+            type: 'string',
+            required: 'true',
+          },
+          {
+            key: 'key3',
+            type: 'string',
+            required: 'true',
+          },
+          {
+            key: 'key4',
+            type: 'string',
+            required: 'true',
+          },
+          {
+            key: 'key5',
+            type: 'string',
+            required: 'true',
+          },
+          {
+            key: 'key6',
+            type: 'string',
+            required: 'true',
+          },
+        ],
+      }),
+    ).toThrowError(
+      new zod.ZodError([
+        {
+          code: zod.ZodIssueCode.too_big,
+          maximum: 5,
+          inclusive: true,
+          type: 'array',
+          path: ['checkout_payment_method_fields'],
+          message: 'The extension may not have more than 5 checkout_payment_method_fields',
+        },
+      ]),
+    )
+  })
 })
 
 describe('customOnsitePaymentsAppExtensionDeployConfig', () => {
