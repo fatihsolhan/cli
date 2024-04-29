@@ -223,15 +223,8 @@ async function createExtensions(
 
 // karen.xie this name sucks too
 async function multipleConfigs(extension: ExtensionInstance): Promise<unknown[]> {
-  if (!extension.specification.multipleModuleConfigPath) return [extension.configuration]
-
   const configContent = await extension.commonDeployConfig('')
-
-  const multipleRootPathValue = getPathValue<unknown[]>(
-    configContent as object,
-    extension.specification.multipleModuleConfigPath,
-  )
-  return multipleRootPathValue || []
+  return Array.isArray(configContent) ? configContent : [configContent]
 }
 
 async function buildExtensionsInGlobalToCreate(extension: ExtensionInstance): Promise<LocalSource[]> {

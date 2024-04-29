@@ -57,7 +57,7 @@ function transformFromWebhookSubscriptionConfig(content: object) {
       })
   })
 
-  return webhookSubscriptions.length > 0 ? {subscriptions: webhookSubscriptions} : {}
+  return webhookSubscriptions.length > 0 ? webhookSubscriptions : []
 }
 
 /* this transforms webhooks remotely to be accepted by the TOML
@@ -122,7 +122,6 @@ const appWebhookSubscriptionSpec = createConfigExtensionSpecification({
   transformConfig: WebhookSubscriptionTransformConfig,
   simplify: WebhookSimplifyConfig,
   extensionManagedInToml: true,
-  multipleModuleConfigPath: 'subscriptions',
   matchesRemoteConfig,
 })
 

@@ -333,9 +333,8 @@ export class ExtensionInstance<TConfiguration extends BaseConfigType = BaseConfi
   }
 
   private bundleConfigAppModules(registrationUuids: string[], configValue: {[key: string]: unknown}) {
-    if (this.specification.extensionManagedInToml && this.specification.multipleModuleConfigPath) {
-      const multipleConfigValues = getPathValue<object[]>(configValue, this.specification.multipleModuleConfigPath)
-      return multipleConfigValues!.map((config: object, index: number) => ({
+    if (Array.isArray(configValue)) {
+      return configValue!.map((config: object, index: number) => ({
         config: JSON.stringify(config),
         context: this.contextValue,
         handle: this.handle,

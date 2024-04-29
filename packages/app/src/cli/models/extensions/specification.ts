@@ -23,7 +23,7 @@ export interface TransformationConfig {
 }
 
 export interface CustomTransformationConfig {
-  forward?: (obj: object, options?: {flags?: Flag[]}) => object
+  forward?: (obj: object, options?: {flags?: Flag[]}) => object | object[]
   reverse?: (obj: object, options?: {flags?: Flag[]}) => object
 }
 
@@ -61,12 +61,11 @@ export interface ExtensionSpecification<TConfiguration extends BaseConfigType = 
   buildValidation?: (extension: ExtensionInstance<TConfiguration>) => Promise<void>
   hasExtensionPointTarget?(config: TConfiguration, target: string): boolean
   appModuleFeatures: (config?: TConfiguration) => ExtensionFeature[]
-  transform?: (content: object) => object
+  transform?: (content: object) => object | object[]
   reverseTransform?: (content: object, options?: {flags?: Flag[]}) => object
   simplify?: (remoteConfig: SpecsAppConfiguration) => SpecsAppConfiguration
   matchesRemoteConfig?: (remoteConfig: object, localConfig: object) => boolean
   extensionManagedInToml?: boolean
-  multipleModuleConfigPath?: string
 }
 
 /**
@@ -123,7 +122,6 @@ export function createExtensionSpecification<TConfiguration extends BaseConfigTy
     matchesRemoteConfig: spec.matchesRemoteConfig ?? (() => false),
     experience: spec.experience ?? 'extension',
     extensionManagedInToml: spec.extensionManagedInToml ?? false,
-    multipleModuleConfigPath: spec.multipleModuleConfigPath,
   }
   return {...defaults, ...spec}
 }
@@ -143,7 +141,6 @@ export function createConfigExtensionSpecification<TConfiguration extends BaseCo
   transformConfig?: TransformationConfig | CustomTransformationConfig
   simplify?: SimplifyConfig
   extensionManagedInToml?: boolean
-  multipleModuleConfigPath?: string
   matchesRemoteConfig?: (remoteConfig: object, localConfig: object) => boolean
 }): ExtensionSpecification<TConfiguration> {
   const appModuleFeatures = spec.appModuleFeatures ?? (() => [])
@@ -158,7 +155,6 @@ export function createConfigExtensionSpecification<TConfiguration extends BaseCo
     simplify: resolveSimplifyAppConfig(spec.simplify),
     matchesRemoteConfig: spec.matchesRemoteConfig,
     extensionManagedInToml: spec.extensionManagedInToml,
-    multipleModuleConfigPath: spec.multipleModuleConfigPath,
     experience: 'configuration',
   })
 }
