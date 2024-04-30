@@ -1,5 +1,16 @@
 # @shopify/theme
 
+## 3.60.0
+
+### Patch Changes
+
+- d5a05e7cc: - Fix the `shopify theme dev` proxy to use the development theme, even when users have a browser session with the live theme loaded
+- d5a05e7cc: - Fix `shopify theme dev` and `shopify theme console` proxies following session changes
+  - Bring the legacy `shopify theme push` implementation in CI/CD workflows
+- 031aa2d0b: Fix unpublished themes being marked as development themes
+- 5343a3672: Fix issue that prevents `shopify theme console` from evaluating results when another 'preview_theme_id' is set
+  - @shopify/cli-kit@3.60.0
+
 ## 3.59.0
 
 ### Minor Changes

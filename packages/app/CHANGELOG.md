@@ -1,5 +1,19 @@
 # @shopify/app
 
+## 3.60.0
+
+### Minor Changes
+
+- 427d9dc0f: Webhook trigger now reads from the configuration instead of .env and accepts more flags
+
+### Patch Changes
+
+- 5bca2e386: Update express to 4.19.2
+- fed261a9b: Fix issue when you create a new remix app, include some scopes and run dev. A message saying scopes mismatch appeared.
+  - @shopify/create-app@3.60.0
+  - @shopify/cli-kit@3.60.0
+  - @shopify/plugin-cloudflare@3.60.0
+
 ## 3.59.0
 
 ### Minor Changes
